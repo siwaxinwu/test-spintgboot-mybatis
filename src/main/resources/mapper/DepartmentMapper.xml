@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.roy.mapper.DepartmentMapper">
+
+    <select id="getDeptById" resultType="com.roy.bean.Dept">
+        select id, dept_name as name from tbl_dept where id = #{id}
+    </select>
+
+
+    <resultMap id="myDeptPlus" type="com.roy.bean.DeptPlus">
+        <id column="did" property="id"/>
+        <result column="deptName" property="name"/>
+        <!--collection定义关联集合类型属性的封装规则
+        ofType：指定集合里面元素的类型
+        -->
+        <collection property="emps" ofType="com.roy.bean.Employee">
+            <id column="eid" property="id"/>
+            <result column="email" property="email"/>
+            <result column="lastName" property="lastName"/>
+            <result column="gender" property="gender"/>
+        </collection>
+
+    </resultMap>
+
+
+    <!--查询部门的时候把所有的员工也查询出来-->
+    <select id="getDeptByIdPlus"  resultMap="myDeptPlus">
+        select
+            d.id as did,
+            d.dept_name as deptName,
+            e.last_name as lastName,
+            e.email as email,
+            e.gender as gender,
+            e.id as eid
+        from tbl_dept d left join tbl_employeeplus e
+        on d.id = e.d_id where d.id = #{id}
+    </select>
+
+    <resultMap id="myDeptStep" type="com.roy.bean.DeptPlus">
+        <id column="id" property="id"/>
+        <result column="dept_name" property="name"/>
+        <!--可以将多列的值传递过去，将多列的值封装成map传递，column ="{deptId=id,key1 = column}"
+        fetchType="lazy"默认使用延迟加载
+        -->
+        <collection property="emps" select="com.roy.mybatis.dao.DepartmentMapper.getempsByDeptId"
+        column="{deptId=id}" fetchType="lazy">
+        </collection>
+    </resultMap>
+
+    <select id="getDeptByIdStep" resultMap="myDeptStep">
+        select id, dept_name from tbl_dept where id = #{id}
+    </select>
+
+    <!--抽取重用的sql片段，方便以后引用
+    include用来引用已经抽取的
+    -->
+    <sql id="select">id, last_name, email, gender</sql>
+    <resultMap id="myEmpsByDeptId" type="com.roy.bean.Employee">
+        <id column="id" property="id"/>
+        <result column="email" property="email"/>
+        <result column="last_name" property="lastName"/>
+        <result column="gender" property="gender"/>
+    </resultMap>
+    <select id="getempsByDeptId" resultMap="myEmpsByDeptId">
+       select
+        <include refid="select"/>
+        from tbl_employeeplus where d_id = #{deptId};
+    </select>
+
+    <!--两个内置参数_parameter:代表整个参数，单个参数就是_parameter,多个参数会被封装成map
+    _databaseid:如果配置了DatbaseProvider标签，则代表当前数据库的别名
+    bind：可以将OGNL表达式的值绑定到一个变量中，方便后来引用这个变量的值
+    -->
+
+    <select id="getEmpsTestInnerParameter" resultType="com.roy.bean.Employee">
+        <bind name="_lastName" value="'%' + lastName + '%'"/>
+        <if test="_databaseId == 'oracle'">
+            select id, last_name, email, gender from tbl_employee where last_name like #{_lastName};
+        </if>
+        <if test="_databaseId == 'mysql'">
+            select id, last_name, email, gender from tbl_employee;
+        </if>
+    </select>
+
+
+
+
+</mapper>

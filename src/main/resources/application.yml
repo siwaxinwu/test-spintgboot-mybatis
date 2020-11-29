@@ -1,0 +1,27 @@
+server:
+  port: 8083
+#  context-path: /web
+spring:
+  datasource:
+    druid:
+      type: com.alibaba.druid.pool.DruidDataSource #Druid
+      driver-class-name: com.mysql.cj.jdbc.Driver #mysql
+      url: jdbc:mysql://192.168.159.130:3306/commonMapper?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=true&nullCatalogMeansCurrent=true
+      username: root
+      password: 123456
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 30000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+mybatis:
+  type-handlers-package: com.roy.handler
+  type-aliases-package: com.roy.bean
+  mapper-locations: classpath:mapper/*Mapper.xml,classpath:mapper/auto/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+logging:
+  level:
+    com.roy.mapper: debug
+

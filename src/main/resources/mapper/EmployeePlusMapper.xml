@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.roy.mapper.EmployeePlusMapper">
+
+	<!--自定义某个javaBean的封装规则，type：自定义的JavaBean类型-->
+	<resultMap id="myEmp" type="com.roy.bean.Employee">
+		<!--指定主键列的封装规则-->
+		<id column="id" property="id"/>
+		<!--定义普通列封装规则-->
+		<result column="last_name" property="lastName"/>
+		<!--其他不指定的列会自动封装，我们只要写了resultMap就把全部的映射规则写上-->
+		<result column="gender" property="gender"/>
+		<result column="email" property="email"/>
+	</resultMap>
+
+	<!---->
+	<select id="getEmpById" resultMap="myEmp">
+		select
+			id,
+			last_name,
+			email,
+			gender
+		from
+			tbl_employee
+		where
+			id = #{id}
+	</select>
+
+	<!--联合查询，级联属性封装结果集-->
+	<resultMap id="myEmpPlus" type="com.roy.bean.EmpPlusDept">
+		<id column="e.id" property="id"/>
+		<result column="e.last_name" property="lastName"/>
+		<result column="e.gender" property="gender"/>
+		<result column="e.email" property="email"/>
+		<!--demo1-->
+		<result column="d.id" property="dept.id"/>
+		<result column="d.dept_name" property="dept.name"/>
+
+		<!--demo2:association可以指定联合的javaBean对象
+		property：指定哪个属性是联合的对象
+		javaType：指定这个属性对象的类型，不能省略
+		一定要取别名，不去别名会映射失败，只有主表的表字段可以不取别名
+		使用association定义单个对象的封装规则
+		-->
+
+		<association property="dept" javaType="com.roy.bean.Dept">
+			<id column="did" property="id"/>
+			<result column="deptName" property="name"></result>
+		</association>
+	</resultMap>
+
+
+	<!--查询员工与之对应的部门-->
+	<select id="getEmpAndDept" resultMap="myEmpPlus">
+		select
+			e.id,
+			e.last_name,
+			e.email,
+			e.gender,
+			e.d_id,
+			d.id as did,
+			d.dept_name as deptName
+		from
+			tbl_employeeplus e, tbl_dept d
+		where
+			e.id = d.id and e.id = #{id}
+	</select>
+
+	<resultMap id="myEmpByStep" type="com.roy.bean.EmpPlusDept">
+		<id column="id" property="id"/>
+		<result column="last_name" property="lastName"/>
+		<result column="gender" property="gender"/>
+		<result column="email" property="email"/>
+		<!--association定义关联对象的封装规则
+		select:表明当前属性是调用select指定的方法查出的结果
+		column:指定将哪一列的值传给这个方法
+		流程：使用select指定的方法（传入column指定的这列参数的值）查出对象，并封装给property指定的属性
+		-->
+		<association property="dept" javaType="com.roy.bean.Dept"
+			 select="com.roy.mybatis.dao.DepartmentMapper.getDeptById" column="d_id">
+		</association>
+	</resultMap>
+
+	<!--使用association进行分布查询  myEmpByStep -->
+	<select id="getEmpByIdStep" resultMap="myEmpDiscrminator">
+		select * from tbl_employeeplus where id = #{id}
+	</select>
+
+	<!--可以使用延迟加载-->
+	<!--可以使用discriminator判断某列的值，然后根据某列的值改变封装行为
+	如果查出来的是女生，把部门信息查询出来
+	如果是男生，把last_name这一列的值赋给email
+	-->
+	<resultMap id="myEmpDiscrminator" type="com.roy.bean.EmpPlusDept">
+		<id column="id" property="id"/>
+		<result column="last_name" property="lastName"/>
+		<result column="gender" property="gender"/>
+		<result column="email" property="email"/>
+		<!--column指定判定的列名
+		javaType：列值对应的java类型
+		-->
+		<discriminator javaType="string" column="gender">
+			<case value="0" resultType="com.roy.bean.EmpPlusDept">
+				<association property="dept" javaType="com.roy.bean.Dept"
+					 select="com.roy.mybatis.dao.DepartmentMapper.getDeptById" column="d_id">
+				</association>
+			</case>
+
+			<case value="1" resultType="com.roy.bean.EmpPlusDept">
+				<id column="id" property="id"/>
+				<result column="last_name" property="lastName"/>
+				<result column="gender" property="gender"/>
+				<result column="last_name" property="email"/>
+			</case>
+		</discriminator>
+	</resultMap>
+</mapper>

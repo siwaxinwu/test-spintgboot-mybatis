@@ -1,0 +1,31 @@
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+    <context id="Mysql" targetRuntime="MyBatis3Simple" defaultModelType="flat">
+        <property name="javaFileEncoding" value="UTF-8"/>
+        <property name="useMapperCommentGenerator" value="true"/>
+        <!--我的jdbc数据库连接-->
+        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
+                        connectionURL="jdbc:mysql://192.168.159.130:3306/commonMapper?serverTimezone=UTC"
+                        userId="root"
+                        password="123456">
+        </jdbcConnection>
+
+        <!--产生pojo文件-->
+        <javaModelGenerator targetPackage="com.roy.autoBean"
+                            targetProject="src/main/java"/>
+        <!--产生xml文件，在mapper目录下-->
+        <sqlMapGenerator targetPackage="mapper.auto"
+                         targetProject="src/main/resources"/>
+
+        <!--生成接口文件-->
+        <javaClientGenerator targetPackage="com.roy.autoMapper"
+                             targetProject="src/main/java"
+                             type="XMLMAPPER"/>
+        <!--表名-->
+        <table tableName="member">
+            <generatedKey column="id" sqlStatement="JDBC"/>
+        </table>
+    </context>
+</generatorConfiguration>

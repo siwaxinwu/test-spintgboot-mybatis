@@ -1,0 +1,29 @@
+
+#建表演示语句
+create table tbl_emplyee(
+	id int(11) primary key auto_increment,
+	last_name varchar(255),
+	gender char(1),
+	email varchar(255)
+)
+create table tbl_dept(
+	id int(11) primary key auto_increment,
+	dept_name varchar(255)
+)
+
+create table tbl_employeeplus(
+	id int(11) primary key auto_increment,
+	last_name varchar(255),
+	gender char(1),
+	email varchar(255),
+	d_id int(11)
+)
+create table tbl_emp_plus(
+	id int(10) primary key auto_increment,
+	last_name varchar(255),
+	gender tinyint(1),
+	birth date
+)
+
+
+

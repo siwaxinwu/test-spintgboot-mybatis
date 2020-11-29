@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.roy.mapper.EmployeeMapper">
+	<!--eviction:缓存的回收策略，
+	flushInterval:缓存刷新间隔，缓存多长时间刷新一次，默认不清空，设置一个ms值
+	readOnly：只读，mybatis认为所有从缓存中获取数据的操作都是只读操作，不会修改数据，mybatis为了
+	加快获取速度，直接会将数据在缓存中的引用交给用户，不安全，速度快，fasle的时候认为获取的数据可能被修改
+	mybatis利用序列化的技术克隆一份新的数据给你，安全，但速度慢
+	size：表示缓存存放多少元素
+	type：指定自定义缓存的全类名
+	实现Cache接口也可以自定义缓存
+
+	-->
+
+
+<!--<cache eviction="FIFO" flushInterval="60000" readOnly="false" size="1024"></cache>-->
+	<!--
+    namespace:名称空间;指定为接口的全类名
+    id：唯一标识
+    resultType：返回值类型
+    #{id}：从传递过来的参数中取出id值
+     -->
+	<select id="getEmpById" resultType="com.roy.bean.Employee">
+		select
+			id,
+			last_name as lastname,
+			email,
+			gender
+		from
+			tbl_employee
+		where
+			id = #{id}
+	</select>
+
+
+	<!--<select id="getEmpById" resultType="employee" databaseId="oracle">
+		select
+		*
+		from
+		tbl_employee
+		where
+		id = #{id}
+	</select>-->
+
+    <!--parameterType参数类型可以省略
+    mysql支持自增主键，自增主键值的获取，mybatis也是利用statement.getGeneratedKeys()
+    useGeneratedKeys默认为false
+    useGeneratedKeys= “true”使用自增主键获取主键值策略
+    keyProperty指定对应的主键属性，也就是mybatis获取到主键值以后，将这个值封装给javaBean的哪个属性
+
+    -->
+	<insert id="addEmp" parameterType="com.roy.bean.Employee" useGeneratedKeys="true" keyProperty="id">
+		insert into tbl_employee(last_name, email, gender)
+		values
+			(#{lastName}, #{email,jdbcType=VARCHAR}, #{gender})
+	</insert>
+
+	<!--Oracle不支持自增，Oracle使用序列来模拟自增，每次插入数据的主键是从序列中拿到的值，如何获取到这个值
+	插入的主键是从序列中获取的
+	-->
+	<!--<insert id="addEmp" databaseId="oracle">
+		&lt;!&ndash;keyProperty:查询出来的主键值封装给javaBean的哪个属性
+		order="BEFORE"在sql插入主键之前运行,先运行查询id的sql，再运行插入的sql
+		&ndash;&gt;
+		<selectKey keyProperty="id" order="BEFORE" resultType="integer">
+			&lt;!&ndash;查主键的sql语句&ndash;&gt;
+			select employee_seq.nextval from dual
+		</selectKey>
+		insert into tbl_employee(employee_id, last_name, email, gender)
+		values
+		( #{id},#{lastName}, #{email}, #{gender})
+	</insert>-->
+
+
+	<!--<insert id="addEmp" databaseId="oracle">
+		<selectKey keyProperty="id" order="AFTER" resultType="integer">
+			&lt;!&ndash;查主键的sql语句&ndash;&gt;
+			select employee_seq.currval from dual
+		</selectKey>
+		insert into tbl_employee(employee_id, last_name, email, gender)
+		values
+		( employee_seq.nextval,#{lastName}, #{email}, #{gender})
+	</insert>-->
+
+
+	<update id="updateEmp">
+		update
+			tbl_employee
+		set
+			last_name = #{lastName},
+			email = #{email},
+			gender = #{gender}
+		where id = #{id}
+	</update>
+	<delete id="deleteEmp">
+		delete from
+			tbl_employee
+		where
+			id = #{id}
+	</delete>
+
+	<select id="getEmpByIdAndlastName" resultType="com.roy.bean.Employee">
+		select * from tbl_employee where id = #{id} and last_name = #{lastName}
+	</select>
+
+	<select id="getEmpByIdByMap" resultType="com.roy.bean.Employee">
+		select * from tbl_employee where id = #{id} and last_name = #{lastName}
+	</select>
+
+	<!--如果返回的是一个集合，resultType要写集合中元素的类型-->
+	<select id="getEmpsByLastNameLike" resultType="map">
+		select * from tbl_employee where last_name like #{lastName}
+
+	</select>
+
+
+	<select id="getEmpByIdReturnMap" resultType="map">
+		select * from tbl_employee where id = #{id}
+	</select>
+
+	<!--mybatis始终写的值是你想让mybatis把一条查询记录封装成什么类型-->
+	<!--resultType也可以写成： com.roy.bean.Employee-->
+	<select id="getEmpsByLastNameLikeReturnMap" resultType="java.util.Map">
+		select * from tbl_employee where last_name like #{lastName}
+	</select>
+
+
+</mapper>
